@@ -39,9 +39,9 @@ class MultiHeadAttention(nn.Module):
         queries=rearrange(self.queries(x),"b n (h d) -> b h n d", h=self.num_heads)
         keys=rearrange(self.keys(x),"b n (h d) -> b h n d", h=self.num_heads)
         values=rearrange(self.values(x),"b n (h d) -> b h n d", h=self.num_heads)
-        energy=torch.einsum('bhqd, bhkd -> bhqk', queries, keys)
+        a=torch.einsum('bhqd, bhkd -> bhqk', queries, keys)
 
-        att = F.softmax(energy, dim=-1) /(self.emb_size**0.5)
+        att = F.softmax(a, dim=-1) /(self.emb_size**0.5)
         att = self.att_drop(att)
         # sum up over the third axis
         out = torch.einsum('bhal, bhlv -> bhav ', att, values)
@@ -83,7 +83,7 @@ class TransformerEncoderBlock(nn.Module):
         return out
 
 class Classification(nn.Module):
-    def __init__(self, emb_size: int = 768, n_classes: int = 1000):
+    def __init__(self, emb_size= 768, n_classes= 1000):
         super(Classification,self).__init__()
         self.block=nn.Sequential(
             nn.LayerNorm(emb_size), 
@@ -95,12 +95,12 @@ class Classification(nn.Module):
 
 class ViT(nn.Module):
     def __init__(self,     
-                in_channels: int = 3,
-                patch_size: int = 16,
-                emb_size: int = 768,
-                img_size: int = 224,
-                depth: int = 1,
-                n_classes: int = 1000):
+                in_channels= 3,
+                patch_size= 16,
+                emb_size= 768,
+                img_size= 224,
+                depth= 12,
+                n_classes= 1000):
         super(ViT,self).__init__()
         self.embedding=Embedding(224, 224, in_channels, emb_size)
         self.block=self.make_layer(depth)
